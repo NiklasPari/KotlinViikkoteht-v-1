@@ -1,14 +1,18 @@
-# KotlinViikkoteht-v-1
-week1
+# KotlinViikkotehtät
+week2
+
+State & ViewModel
+Compose käyttää reaktiivista tilaa: UI päivittyy automaattisesti, kun state muuttuu.
+remember säilyttää tilan vain Composable-funktion ajan, kun taas ViewModel
+säilyttää tilan kokoajan, joten tiedot eivät katoa.
+
 
 A) Ominaisuudet
-data class, useampi funktio ja napit (add/toggle/filter/sort) + UI näyttää listan/mockin
-B) Rakenn
-selkeä domain/UI-erottelu, nimet järkeviä
+4p: ViewModel + kaikki toiminnot (add/toggle/remove/filter/sort) toimii
+B) Rakenne
+domain, ViewModel ja UI erillään
 C) UI/UX
-perus Compose-näkymä (Column/Row) 
-D) Dokumentointi & demo
-https://www.youtube.com/watch?v=kqJcmOc7qHs
+selkeä, luettava, marginaalit kunnossa, omaa "koristelua" on tehty
 
 
 APK:n asentaminen ja ajaminen
