@@ -1,4 +1,5 @@
 package com.example.viikkotehtv1.ui
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.example.viikkotehtv1.model.Task
 
 @Composable
 fun HomeScreen(vm: TaskViewModel = viewModel()) {
@@ -23,6 +25,9 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
     var newTitle by remember { mutableStateOf("") }
     var newDueDate by remember { mutableStateOf("") }
     var newDescription by remember { mutableStateOf("") }
+    val tasks by vm.tasks.collectAsState()
+    var selectedTask by remember { mutableStateOf<Task?>(null) }
+
 
     Column(modifier = Modifier.padding(16.dp)) {
         //sovelluksen "otsikko"
@@ -32,20 +37,15 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
         // Funktioiden napit eli sort ja toggle
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
             Button(onClick = { vm.toggleSort() }) {
-                Text(if (vm.sortByTitle) "Sort by date" else "Sort A-Z")
+                Text("Sort")
             }
-
-            var showDoneOnly by remember { mutableStateOf(false) }
-
-            Button(onClick = {
-                showDoneOnly = !showDoneOnly
-                vm.filterByDone(showDoneOnly)
-            }) {
-                Text(if (showDoneOnly) "Show All" else "Show Done")
+            Button(onClick = { vm.toggleShowDone() }) {
+                Text("Show done")
             }
         }
         //****************** UUSIEN TASKIN KIRJOITUS FIELDIT ********************************************************************************************
         OutlinedTextField( modifier = Modifier .fillMaxWidth(),
+
 
             value = newTitle,
             onValueChange = { newTitle = it },
@@ -69,7 +69,7 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
             if (newTitle.isNotBlank()) {
                 vm.addTask(
                     Task(
-                        id = vm.tasks.size + 1,     //id aina 1 enemmän kuin viimeisin
+                        id = tasks.size + 1,     //id aina 1 enemmän kuin viimeisin
                         title = newTitle,           //lisätään otsikko
                         description = newDescription,  //lisätään deski
                         dueDate = newDueDate,           //lisätään päivä
@@ -86,52 +86,67 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
     }
     //********************************* Valmiit täskit ********************************************************************************
         LazyColumn {        //käytetään lazcolumn uusien täskien näyttämiseen
-            items(vm.tasks) { task ->
+            items(tasks) { task ->
 
                 Card(           //tehdään kortti jossa taskin tiedot on niin erottuu hyvin listassa
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { selectedTask = task }
                         .padding(vertical = 4.dp),
+
+
                     elevation = CardDefaults.cardElevation(2.dp)
-                ){
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    //-------------------------------------------------------------------
-                    Row {
-                        Checkbox(           //käyetään checkbox että taskien päällä pois laittoon
-                            checked = task.done,
-                            onCheckedChange = { vm.toggleDone(task.id) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        //-------------------------------------------------------------------
+                        Row {
+                            Checkbox(           //käyetään checkbox että taskien päällä pois laittoon
+                                checked = task.done,
+                                onCheckedChange = { vm.toggleDone(task.id) }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
 
 
-                        Text( //taskin tekstit
-                            buildAnnotatedString { //luodaaan tekstit niin että niitä voidaan muokata jokaista eriksee
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append(task.title)
+                            Text( //taskin tekstit
+                                buildAnnotatedString { //luodaaan tekstit niin että niitä voidaan muokata jokaista eriksee
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append(task.title)
+                                    }
+                                    append("\n") //rivinvaihto
+                                    append(task.description)
+                                    append("\n") //rivinvaihto
+                                    append(task.dueDate)
                                 }
-                                append("\n") //rivinvaihto
-                                append(task.description)
-                                append("\n") //rivinvaihto
-                                append(task.dueDate)
-                            }
 
-                        )
-                        Spacer(modifier = Modifier.width(8.dp)) //pieni väli napin ja tekstien väliin
+                            )
+                            Spacer(modifier = Modifier.width(8.dp)) //pieni väli napin ja tekstien väliin
 
-                        Button(onClick = { vm.removeTask(task.id) },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp), //napista vähän pienempi
-                                modifier = Modifier.height(32.dp)
-                        ) { Text("Remove") }
+                        }
                     }
                 }
-                //-------------------------------------------------------------------
-                }
             }
+        }
+
+
+                //-------------------------------------------------------------------
+        if (selectedTask != null) {
+            TaskDetailDialog(
+                task = selectedTask!!,
+                onSave = {
+                    vm.updateTask(it)
+                    selectedTask = null
+                },
+                onDelete = {
+                    vm.removeTask(it)
+                    selectedTask = null
+                },
+                onDismiss = { selectedTask = null }
+            )
         }
     }
 }
