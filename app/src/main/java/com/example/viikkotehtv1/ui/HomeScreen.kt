@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.viikkotehtv1.viewmodel.TaskViewModel
+import com.example.viikkotehtv1.ui.CalendarScreen
+import androidx.compose.foundation.background
 
 //tekstien muokkaukseen
 import androidx.compose.ui.text.buildAnnotatedString
@@ -18,8 +20,19 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.example.viikkotehtv1.model.Task
 
+
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.platform.LocalContext
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(vm: TaskViewModel = viewModel()) {
+fun HomeScreen(vm: TaskViewModel,
+               navigateToCalendar: () -> Unit, //kaikki näytöt mihin halutaan navigoida
+               navigateToSettings: () -> Unit ) {
 
     //määritetään muutama muuttuja
     var newTitle by remember { mutableStateOf("") }
@@ -28,10 +41,27 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
     val tasks by vm.tasks.collectAsState()
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
 
-    Column(modifier = Modifier.padding(16.dp)) {
         //sovelluksen "otsikko"
         Text("Task list" + "\n", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+
+        TopAppBar(
+            title = { Text("Tasks") },
+            actions = {
+                IconButton(onClick = navigateToCalendar) {
+                    Icon(Icons.Filled.DateRange, contentDescription = "Calendar")
+                }
+                IconButton(onClick = navigateToSettings) { // uusi nappi
+                    Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                }
+            }
+        )
 
         //*****************************************************************************************************************
         // Funktioiden napit eli sort ja toggle
@@ -43,6 +73,8 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
                 Text("Show done")
             }
         }
+
+
         //****************** UUSIEN TASKIN KIRJOITUS FIELDIT ********************************************************************************************
         OutlinedTextField( modifier = Modifier .fillMaxWidth(),
 
@@ -51,12 +83,13 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
             onValueChange = { newTitle = it },
             label = { Text("Title") }
         )
-
-        OutlinedTextField( modifier = Modifier .fillMaxWidth(),
+        OutlinedTextField(modifier = Modifier .fillMaxWidth(),
             value = newDueDate,
-            onValueChange = { newDueDate = it },
-            label = { Text("Due date") }
+            onValueChange = {},
+            label = { Text("Due date") },
+
         )
+
         OutlinedTextField( modifier = Modifier .fillMaxWidth(),
             value = newDescription,
             onValueChange = { newDescription = it },
@@ -84,6 +117,7 @@ fun HomeScreen(vm: TaskViewModel = viewModel()) {
             Text("Add task")
         }
     }
+
     //********************************* Valmiit täskit ********************************************************************************
         LazyColumn {        //käytetään lazcolumn uusien täskien näyttämiseen
             items(tasks) { task ->
