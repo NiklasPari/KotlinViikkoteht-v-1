@@ -40,6 +40,7 @@ fun HomeScreen(vm: TaskViewModel,
     var newDescription by remember { mutableStateOf("") }
     val tasks by vm.tasks.collectAsState()
     var selectedTask by remember { mutableStateOf<Task?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -54,12 +55,18 @@ fun HomeScreen(vm: TaskViewModel,
         TopAppBar(
             title = { Text("Tasks") },
             actions = {
+                // Lisää-nappi (Avaa dialogin)
+                IconButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Filled.Add, contentDescription = "Lisää tehtävä")
+                }
+
                 IconButton(onClick = navigateToCalendar) {
                     Icon(Icons.Filled.DateRange, contentDescription = "Calendar")
                 }
                 IconButton(onClick = navigateToSettings) { // uusi nappi
                     Icon(Icons.Filled.Settings, contentDescription = "Settings")
                 }
+
             }
         )
 
@@ -72,51 +79,68 @@ fun HomeScreen(vm: TaskViewModel,
             Button(onClick = { vm.toggleShowDone() }) {
                 Text("Show done")
             }
+
         }
 
 
-        //****************** UUSIEN TASKIN KIRJOITUS FIELDIT ********************************************************************************************
-        OutlinedTextField( modifier = Modifier .fillMaxWidth(),
+            // *****************TEHTÄVÄN LISÄYS DIALOGI (AlertDialog)******************************
+            if (showAddDialog) {
+                var newTitle by remember { mutableStateOf("") }
+                var newDescription by remember { mutableStateOf("") }
+                var newDueDate by remember { mutableStateOf("") }
 
-
-            value = newTitle,
-            onValueChange = { newTitle = it },
-            label = { Text("Title") }
-        )
-        OutlinedTextField(modifier = Modifier .fillMaxWidth(),
-            value = newDueDate,
-            onValueChange = {},
-            label = { Text("Due date") },
-
-        )
-
-        OutlinedTextField( modifier = Modifier .fillMaxWidth(),
-            value = newDescription,
-            onValueChange = { newDescription = it },
-            label = { Text("Description") }
-        )
-
-        //**************************** Uudet taskit *************************************************************************************
-        Row(modifier = Modifier.padding(bottom = 8.dp)){ //paddin napin alapuolelle selkeämpi erottelu rowien väliin
-            Button( modifier = Modifier .fillMaxWidth(),onClick = {
-            if (newTitle.isNotBlank()) {
-                vm.addTask(
-                    Task(
-                        id = tasks.size + 1,     //id aina 1 enemmän kuin viimeisin
-                        title = newTitle,           //lisätään otsikko
-                        description = newDescription,  //lisätään deski
-                        dueDate = newDueDate,           //lisätään päivä
-                        done = false                    //vakiona ei ole tehty
-                    )
+                AlertDialog(
+                    onDismissRequest = { showAddDialog = false },
+                    title = { Text("Add new task") },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = newTitle,
+                                onValueChange = { newTitle = it },
+                                label = { Text("Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = newDescription,
+                                onValueChange = { newDescription = it },
+                                label = { Text("Description") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = newDueDate,
+                                onValueChange = { newDueDate = it },
+                                label = { Text("Due date (YYYY-MM-DD)") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                if (newTitle.isNotBlank()) {
+                                    vm.addTask(
+                                        Task(
+                                            id = (tasks.maxOfOrNull { it.id } ?: 0) + 1,
+                                            title = newTitle,
+                                            description = newDescription,
+                                            dueDate = newDueDate,
+                                            done = false
+                                        )
+                                    )
+                                    showAddDialog = false
+                                }
+                            }
+                        ) {
+                            Text("Tallenna")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showAddDialog = false }) {
+                            Text("Peruuta")
+                        }
+                    }
                 )
-                newTitle = ""
-                newDueDate = ""
-                newDescription = ""
             }
-        }) {
-            Text("Add task")
-        }
-    }
 
     //********************************* Valmiit täskit ********************************************************************************
         LazyColumn {        //käytetään lazcolumn uusien täskien näyttämiseen
@@ -165,7 +189,6 @@ fun HomeScreen(vm: TaskViewModel,
                 }
             }
         }
-
 
                 //-------------------------------------------------------------------
         if (selectedTask != null) {
