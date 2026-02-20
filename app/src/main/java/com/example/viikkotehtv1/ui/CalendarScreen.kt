@@ -18,14 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.viikkotehtv1.model.Task
+import com.example.viikkotehtv1.data.model.TaskEntity
 import com.example.viikkotehtv1.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(vm: TaskViewModel, navigateBack: () -> Unit) {
-    val tasks by vm.tasks.collectAsState()
-    var selectedTask by remember { mutableStateOf<Task?>(null) }
+    val tasks by vm.uiTasks.collectAsState(initial = emptyList())
+    var selectedTask by remember { mutableStateOf<TaskEntity?>(null) }
 
     // Uniikit päivämäärät järjestettynä ja valittu päivä
     val availableDates = tasks.map { it.dueDate }.distinct().sorted()
@@ -91,7 +91,7 @@ fun CalendarScreen(vm: TaskViewModel, navigateBack: () -> Unit) {
                     items(filteredTasks) { task ->
                         TaskCalendarItem(
                             task = task,
-                            onToggle = { vm.toggleDone(task.id) },
+                            onToggle = { vm.toggleDone(task) },
                             onClick = { selectedTask = task }
                         )
                     }
@@ -128,7 +128,7 @@ fun DateChip(date: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskCalendarItem(task: Task, onToggle: () -> Unit, onClick: () -> Unit) {
+fun TaskCalendarItem(task: TaskEntity, onToggle: () -> Unit, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

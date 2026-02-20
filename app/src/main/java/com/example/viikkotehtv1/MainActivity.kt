@@ -14,49 +14,57 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.viikkotehtv1.ui.CalendarScreen
 import com.example.viikkotehtv1.viewmodel.TaskViewModel
-import androidx.navigation.compose.NavHost
+import com.example.viikkotehtv1.data.local.AppDatabase
+import com.example.viikkotehtv1.data.repository.TaskRepository
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.viikkotehtv1.ui.SettingsScreen
 import androidx.compose.runtime.*
+import com.example.viikkotehtv1.viewmodel.TaskViewModelFactory
 
 const val ROUTE_HOME = "home"
 const val ROUTE_CALENDAR = "calendar"
 const val ROUTE_SETTINGS = "settings"
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val database = AppDatabase.getDatabase(this)
+        val repository = TaskRepository(database.taskDao())
 
         setContent {
-            val vm: TaskViewModel = viewModel()
+            val vm: TaskViewModel = viewModel(
+                factory = TaskViewModelFactory(repository)
+            )
             val navController = rememberNavController()
             var isDarkTheme by remember { mutableStateOf(false) }
+            
             Viikkotehtävä1Theme(darkTheme = isDarkTheme) {
-            NavHost(
-                navController = navController,
-                startDestination = ROUTE_HOME) {
-                composable(ROUTE_HOME) {
-                    HomeScreen(
-                        vm = vm,
-                        navigateToCalendar = { navController.navigate(ROUTE_CALENDAR) },
-                        navigateToSettings = { navController.navigate(ROUTE_SETTINGS) }
-
-                    )
-                }
-                composable(ROUTE_CALENDAR) {
-                    CalendarScreen(vm = vm, navigateBack = { navController.popBackStack() })
-                }
-                composable(ROUTE_SETTINGS) {
-                            SettingsScreen(
-                                isDarkTheme = isDarkTheme,
-                                onThemeToggle = { isDarkTheme = it },
-                                navigateBack = { navController.popBackStack() })
+                NavHost(
+                    navController = navController,
+                    startDestination = ROUTE_HOME
+                ) {
+                    composable(ROUTE_HOME) {
+                        HomeScreen(
+                            vm = vm,
+                            navigateToCalendar = { navController.navigate(ROUTE_CALENDAR) },
+                            navigateToSettings = { navController.navigate(ROUTE_SETTINGS) }
+                        )
+                    }
+                    composable(ROUTE_CALENDAR) {
+                        CalendarScreen(vm = vm, navigateBack = { navController.popBackStack() })
+                    }
+                    composable(ROUTE_SETTINGS) {
+                        SettingsScreen(
+                            isDarkTheme = isDarkTheme,
+                            onThemeToggle = { isDarkTheme = it },
+                            navigateBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
-        }}
+        }
     }
 }
 

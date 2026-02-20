@@ -18,7 +18,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
-import com.example.viikkotehtv1.model.Task
+import com.example.viikkotehtv1.data.model.TaskEntity
 
 
 import androidx.compose.material3.Icon
@@ -35,12 +35,10 @@ fun HomeScreen(vm: TaskViewModel,
                navigateToSettings: () -> Unit ) {
 
     //määritetään muutama muuttuja
-    var newTitle by remember { mutableStateOf("") }
-    var newDueDate by remember { mutableStateOf("") }
-    var newDescription by remember { mutableStateOf("") }
-    val tasks by vm.tasks.collectAsState()
-    var selectedTask by remember { mutableStateOf<Task?>(null) }
+    val tasks by vm.uiTasks.collectAsState(initial = emptyList())
     var showAddDialog by remember { mutableStateOf(false) }
+    var selectedTask by remember { mutableStateOf<TaskEntity?>(null) }
+
 
         Column(
             modifier = Modifier
@@ -115,33 +113,18 @@ fun HomeScreen(vm: TaskViewModel,
                         }
                     },
                     confirmButton = {
-                        Button(
-                            onClick = {
-                                if (newTitle.isNotBlank()) {
-                                    vm.addTask(
-                                        Task(
-                                            id = (tasks.maxOfOrNull { it.id } ?: 0) + 1,
-                                            title = newTitle,
-                                            description = newDescription,
-                                            dueDate = newDueDate,
-                                            done = false
-                                        )
-                                    )
-                                    showAddDialog = false
-                                }
+                        Button(onClick = {
+                            if (newTitle.isNotBlank()) {
+                                vm.addTask(newTitle, newDescription, newDueDate)
+                                showAddDialog = false
                             }
-                        ) {
-                            Text("Tallenna")
-                        }
+                        }) { Text("Tallenna") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showAddDialog = false }) {
-                            Text("Peruuta")
-                        }
+                        TextButton(onClick = { showAddDialog = false }) { Text("Peruuta") }
                     }
                 )
             }
-
     //********************************* Valmiit täskit ********************************************************************************
         LazyColumn {        //käytetään lazcolumn uusien täskien näyttämiseen
             items(tasks) { task ->
@@ -151,8 +134,6 @@ fun HomeScreen(vm: TaskViewModel,
                         .fillMaxWidth()
                         .clickable { selectedTask = task }
                         .padding(vertical = 4.dp),
-
-
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Row(
@@ -165,7 +146,7 @@ fun HomeScreen(vm: TaskViewModel,
                         Row {
                             Checkbox(           //käyetään checkbox että taskien päällä pois laittoon
                                 checked = task.done,
-                                onCheckedChange = { vm.toggleDone(task.id) }
+                                onCheckedChange = { vm.toggleDone(task) }
                             )
                             Spacer(modifier = Modifier.width(8.dp))
 

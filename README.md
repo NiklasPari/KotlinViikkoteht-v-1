@@ -1,53 +1,31 @@
-<<<<<<< HEAD
-# KotlinViikkoteht-v-1
-week1
+# Week6 - Room-tietokannan toteutus
 
-A) Ominaisuudet
-data class, useampi funktio ja napit (add/toggle/filter/sort) + UI näyttää listan/mockin
-B) Rakenn
-selkeä domain/UI-erottelu, nimet järkeviä
-C) UI/UX
-perus Compose-näkymä (Column/Row) 
-D) Dokumentointi & demo
-https://www.youtube.com/watch?v=kqJcmOc7qHs
-=======
-# KotlinViikkotehtät week 3
-## MVVM ja Compose
+Tämä projekti on tehtävälista-sovelluksen jatkoa, tietojen tallenus pysyvä Room-tietokannalla. Sovellus hyödyntää MVVM-arkitehtuuria.
 
-Sovellus käyttää MVVM-arkkitehtuuria.
+## Arkkitehtuuri ja rakenne
 
-- Model: Task
-- View: Jetpack Compose UI
-- ViewModel: TaskViewModel
+Sovellus on jaettu selkeisiin kerroksiin, mikä tekee koodista helpommin hallittavaa ja testattavaa:
 
-ViewModel hallitsee kaiken tilan ja logiikan.
-UI ei sisällä liiketoimintalogiikkaa.
->>>>>>> 7834bba45f1d64bc3cc8c2f11e6e1a3a50ce99e3
+*   **Entity: TaskEntity**: Määrittelee tietokantaan tallennettavan datan rakenteen
+*   **DAO: TaskDao**: Rajapinta, joka sisältää metodit tietokannan lukemiseen ja muokkaamiseen
+*   **Database: AppDatabase**: Hallitsee tietokantayhteyttä ja toimii pääpisteenä datan tallennukselle
+*   **Repository: TaskRepository**: Toimii välikätenä tietokannan ja sovelluslogiikan välillä, tarjoten datan eteenpäin siistissä muodossa
+*   **ViewModel: TaskViewModel**: Hallitsee sovelluksen tilaa ja logiikkaa. Se käsittelee datan (esim. järjestely ja suodatus) ennen sen näyttämistä käyttäjälle.
+*   **UI (Jetpack Compose)**: Käyttöliittymä, joka päivittyy automaattisesti ViewModelin mukaan
 
-## StateFlow
-TaskViewModel käyttää StateFlowta tilan hallintaan.
-Compose kuuntelee tilaa collectAsState()-funktiolla.
-Kun tila muuttuu, UI päivittyy automaattisesti.
+## Datavirta
+Room päivittää tiedon, ja reaktiivinen Flow päivittää näkymän automaattisesti ilman erillistä päivityskäskyä.
 
-## Hyödyt
-- Selkeä rakenne
-- Reaktiivinen UI
-- Tila säilyy rotaatiossa
-- Helppo testata ja laajentaa
+## Ominaisuudet
 
-  
-APK:n asentaminen ja ajaminen
-Lataa APK projekti-kansiosta (app/build/outputs/apk/debug/app-debug.apk)
-Salli asennus tuntemattomista lähteistä Android-laitteessa:
-Asetukset → Turvallisuus → Salli tuntemattomat sovellukset
-Siirrä APK laitteeseesi USB:n, pilven tai sähköpostin avulla
-Asenna APK laitteella klikkaamalla tiedostoa
-Aja sovellus:
-Klikkaa sovellusikonia
-Näet mock-tehtävälistan
-<<<<<<< HEAD
+*   Tehtävien lisäys, haku, päivitys ja poisto.
+*   Pysyvä tallennus: tiedot säilyvät, vaikka sovellus suljetaan.
+*   Tehtävien järjestely nimen tai päivämäärän mukaan.
+*   Kalenterinäkymä tehtävien tarkasteluun päiväkohtaisesti.
 
-Voit testata Add Task, Toggle Done, Show Done / Show All, Sort-napit
-=======
-Voit testata
->>>>>>> 7834bba45f1d64bc3cc8c2f11e6e1a3a50ce99e3
+## Demovideo
+
+[Linkki demovideoon] https://www.youtube.com/watch?v=ZPmuLcHprAw
+
+## APK
+APK sijainti on suoraa githubin juuressa sekä myös palautus tekstissä onedrive linkkinä

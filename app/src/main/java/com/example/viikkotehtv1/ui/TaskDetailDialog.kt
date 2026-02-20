@@ -2,18 +2,18 @@ package com.example.viikkotehtv1.ui
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import com.example.viikkotehtv1.model.Task
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.viikkotehtv1.data.model.TaskEntity
 
 @Composable
 fun TaskDetailDialog(
-    task: Task,
-    onSave: (Task) -> Unit,
-    onDelete: (Int) -> Unit,
+    task: TaskEntity,
+    onSave: (TaskEntity) -> Unit,
+    onDelete: (TaskEntity) -> Unit,
     onDismiss: () -> Unit
 ) {
     var title by remember { mutableStateOf(task.title) }
@@ -42,7 +42,7 @@ fun TaskDetailDialog(
         //Delete nappi
         dismissButton = {
             Button(onClick = {
-                onDelete(task.id)
+                onDelete(task)
             }) {
                 Text("Delete")
             }

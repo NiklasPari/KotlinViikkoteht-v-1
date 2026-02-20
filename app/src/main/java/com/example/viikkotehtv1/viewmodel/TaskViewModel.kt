@@ -1,50 +1,67 @@
 package com.example.viikkotehtv1.viewmodel
 
-
 import androidx.lifecycle.ViewModel
-import com.example.viikkotehtv1.domain.mockTasks
+import androidx.lifecycle.viewModelScope
+import com.example.viikkotehtv1.data.model.TaskEntity
+import com.example.viikkotehtv1.data.repository.TaskRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.example.viikkotehtv1.model.Task
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModelProvider
 
 
 
-class TaskViewModel : ViewModel() {
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
 
-    private val _allTasks = MutableStateFlow<List<Task>>(mockTasks)
-    private val _uiTasks = MutableStateFlow<List<Task>>(mockTasks)
-    val tasks: StateFlow<List<Task>> = _uiTasks.asStateFlow()
+    private val _allTasks = MutableStateFlow<List<TaskEntity>>(emptyList())
+    val allTasks: StateFlow<List<TaskEntity>> = _allTasks.asStateFlow()
 
+    private val _uiTasks = MutableStateFlow<List<TaskEntity>>(emptyList())
+    val uiTasks: StateFlow<List<TaskEntity>> = _uiTasks.asStateFlow()
 
     private var showDoneOnly = false
     private var sortByTitle = true
         private set
+
     init {
-        applyFiltersAndSort()
-    }
-    fun addTask(task: Task) {
-        _allTasks.value = _allTasks.value + task
-        applyFiltersAndSort()
-    }
-
-    fun toggleDone(id: Int) {
-        _allTasks.value = _allTasks.value.map {
-            if (it.id == id) it.copy(done = !it.done) else it
+        viewModelScope.launch {
+            repository.allTasks.collect { list ->
+                _allTasks.value = list
+                applyFiltersAndSort()
+            }
         }
-        applyFiltersAndSort()
     }
 
-    fun removeTask(id: Int) {
-        _allTasks.value = _allTasks.value.filterNot { it.id == id }
-        applyFiltersAndSort()
-    }
-
-    fun updateTask(updated: Task) {
-        _allTasks.value = _allTasks.value.map {
-            if (it.id == updated.id) updated else it
+    fun addTask(title: String, description: String, dueDate: String) {
+        viewModelScope.launch {
+            repository.insert(
+                TaskEntity(
+                    title = title,
+                    description = description,
+                    dueDate = dueDate
+                )
+            )
         }
-        applyFiltersAndSort()
+    }
+
+    fun toggleDone(task: TaskEntity) {
+        viewModelScope.launch {
+            repository.update(task.copy(done = !task.done))
+        }
+    }
+
+    fun removeTask(task: TaskEntity) {
+        viewModelScope.launch {
+            repository.delete(task)
+        }
+    }
+
+    fun updateTask(task: TaskEntity) {
+        viewModelScope.launch {
+            repository.update(task)
+        }
     }
 
     fun toggleShowDone() {
@@ -73,3 +90,13 @@ class TaskViewModel : ViewModel() {
         _uiTasks.value = list
     }
 }
+
+        class TaskViewModelFactory(private val repository: TaskRepository) : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return TaskViewModel(repository) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
